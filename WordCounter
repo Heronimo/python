@@ -1,0 +1,58 @@
+import tkinter as tk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from collections import Counter
+
+class WordFrequencyGUI:
+    def __init__(self, master):
+        self.master = master
+        master.title ("Word Frequency Analyzer")
+        # Create frame for text box and table
+        self.frame_left = tk.Frame (master)
+        self.frame_left.pack (side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Create text box for user input
+        self.text_box = tk.Text (self.frame_left)
+        self.text_box.pack (side=tk.TOP, fill=tk.BOTH, expand=True)
+        # Create button to analyze text and show results
+        self.analyze_button = tk.Button (self.frame_left, text="Analyze Text", command=self.analyze_text)
+        self.analyze_button.pack (side=tk.TOP, pady=5)
+        # Create table to show word frequency results
+        self.table = tk.Listbox (self.frame_left, width=40)
+        self.table.pack (side=tk.LEFT, fill=tk.BOTH, expand=True, padx=1, pady=1)
+        # Create frame for plot
+        self.frame_right = tk.Frame (master)
+        self.frame_right.pack (side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=1)
+        # Create plot to show word frequency distribution
+        self.fig, self.ax = plt.subplots (figsize=(8, 4))
+        self.canvas = FigureCanvasTkAgg (self.fig, master=self.frame_right)
+        self.canvas.get_tk_widget ().pack (side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    def analyze_text(self):
+        # Get input text from the text box
+        text = self.text_box.get ("1.0", "end-1c")
+        # Calculate word frequencies
+        words = text.split ()
+        word_counts = Counter (words)
+        # Calculate total number of words
+        total_words = len (words)
+        # Sort word frequency results by count
+        sorted_counts = sorted (word_counts.items (), key=lambda x: x[ 1 ], reverse=True)
+        # Clear table and plot
+        self.table.delete (0, tk.END)
+        self.ax.clear ()
+        # Add sorted word frequency results to table and plot with percentage
+        for i, (word, count) in enumerate (sorted_counts):
+            percentage = (count / total_words) * 100
+            self.table.insert (tk.END, f"{i + 1}. {word}: {count} ({percentage:.2f}%)")
+        self.ax.bar ([ x[ 0 ] for x in sorted_counts ], [ x[ 1 ] for x in sorted_counts ])
+        self.ax.set_xlabel ("Words")
+        self.ax.set_ylabel ("Frequency")
+        self.ax.set_xticklabels ([ x[ 0 ] for x in sorted_counts ], fontsize=7, rotation=45)
+        # Update canvas
+        self.fig.tight_layout ()
+        self.canvas.draw ()
+
+
+root = tk.Tk ()
+gui = WordFrequencyGUI (root)
+root.mainloop ()
